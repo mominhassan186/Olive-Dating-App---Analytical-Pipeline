@@ -1,0 +1,4 @@
+indicator,target,actual,gap,finding,recommendation,intervention,follow_up
+30-Day User Retention,30.0%,21.5%,-8.5%,30-day retention has stabilized across MENA and US user cohorts.,Introduce targeted push notifications for inactive users around day 20.,Lifecycle email & push re-engagement campaigns.,Monitor retention impact across the next quarterly cycle.
+Profile Completion Rate,80.0%,71.4%,-8.6%,Users dropping off during optional bio and interest tag selection.,Add gamified progress bars during registration.,Streamline onboarding UI to 3 required steps.,Track completion rates after v2 onboarding rollout.
+Match-to-Message Conversion,65.0%,58.4%,-6.6%,Users obtain matches but fail to initiate chat within 24 hours.,Provide contextual icebreaker suggestions on new match creation.,Implement automated chat starter prompts.,Measure first-message latency post-intervention.

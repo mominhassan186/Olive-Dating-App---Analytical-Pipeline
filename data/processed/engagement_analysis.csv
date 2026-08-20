@@ -1,0 +1,4 @@
+engagement_group,users,avg_profile_completion,avg_matches,avg_messages,retention_7_day,retention_30_day
+Medium (2-5 sessions),1,10.0,0.0,0.0,0.0,0.0
+High (6-10 sessions),13,16.15,0.85,2.77,0.0,15.38
+Very High (10+ sessions),9986,70.83,0.7,3.05,31.66,31.01

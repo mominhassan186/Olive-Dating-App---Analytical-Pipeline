@@ -1,0 +1,4 @@
+profile_group,users,avg_sessions,avg_matches,avg_messages,retention_7_day,retention_30_day
+Low (0-50%),1476,39.3,0.59,2.57,19.99,19.58
+Medium (51-80%),5280,70.19,0.67,3.0,30.11,29.05
+High (81-100%),3244,107.87,0.78,3.34,39.36,39.33
