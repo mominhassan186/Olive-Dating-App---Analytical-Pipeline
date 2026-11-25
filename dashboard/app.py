@@ -1,5 +1,4 @@
 from pathlib import Path
-import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -235,7 +234,10 @@ ME_FILE = PROCESSED_DIR / "me_evaluation.csv"
 @st.cache_data
 def load_data():
     if not EXECUTIVE_FILE.exists() or not ME_FILE.exists():
-        st.error("Processed metrics files not found. Please run: `python src/generate_metrics.py` first.")
+        st.error(
+            "Processed metrics files not found. From the project root, "
+            "run `python src/generate_metrics.py` after generating and cleaning the data."
+        )
         st.stop()
 
     executive = pd.read_csv(EXECUTIVE_FILE)
@@ -243,6 +245,10 @@ def load_data():
     return executive, me
 
 df, me = load_data()
+
+if df.empty:
+    st.error("Executive metrics contain no rows. Regenerate the processed metrics.")
+    st.stop()
 
 # Data normalization and sanitization
 numeric_columns = [
@@ -254,9 +260,23 @@ numeric_columns = [
 
 for col in numeric_columns:
     if col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-latest = df.iloc[-1] if not df.empty else None
+cohort_metrics = df.dropna(
+    subset=[
+        "profile_completion",
+        "retention_7_day_pct",
+        "retention_30_day_pct",
+    ]
+)
+activity_metrics = df[df["active_users"] > 0]
+
+if cohort_metrics.empty or activity_metrics.empty:
+    st.error("Executive metrics do not contain a complete user cohort and activity month.")
+    st.stop()
+
+latest_cohort = cohort_metrics.iloc[-1]
+latest_activity = activity_metrics.iloc[-1]
 
 # ============================================================
 # 4. SIDEBAR NAVIGATION
@@ -327,16 +347,19 @@ st.write("")
 # PAGE 1: EXECUTIVE OVERVIEW
 # ------------------------------------------------------------
 if current_page == "Executive Overview":
-    st.markdown(f"#### 📊 Monthly Performance Summary &nbsp;•&nbsp; `Period: {latest['month']}`")
+    st.markdown(
+        f"#### 📊 Monthly Performance Summary &nbsp;•&nbsp; "
+        f"`Cohort: {latest_cohort['month']} | Activity: {latest_activity['month']}`"
+    )
     st.write("")
 
     # KPI Topline Cards
     k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("New Signups", f"{latest['new_users']:,.0f}")
-    k2.metric("Active Users", f"{latest['active_users']:,.0f}")
-    k3.metric("Profile Setup", f"{latest['profile_completion']:.1f}%")
-    k4.metric("7-Day Retention", f"{latest['retention_7_day_pct']:.1f}%")
-    k5.metric("30-Day Retention", f"{latest['retention_30_day_pct']:.1f}%")
+    k1.metric("New Signups", f"{latest_cohort['new_users']:,.0f}")
+    k2.metric("Active Users", f"{latest_activity['active_users']:,.0f}")
+    k3.metric("Profile Setup", f"{latest_cohort['profile_completion']:.1f}%")
+    k4.metric("7-Day Retention", f"{latest_cohort['retention_7_day_pct']:.1f}%")
+    k5.metric("30-Day Retention", f"{latest_cohort['retention_30_day_pct']:.1f}%")
 
     st.divider()
 
@@ -360,10 +383,10 @@ elif current_page == "Engagement Monitoring":
     st.write("")
 
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Monthly Active Users", f"{latest['active_users']:,.0f}")
-    k2.metric("Total Sessions", f"{latest['sessions']:,.0f}")
-    k3.metric("Matches Formed", f"{latest['matches']:,.0f}")
-    k4.metric("Messages Sent", f"{latest['messages']:,.0f}")
+    k1.metric("Monthly Active Users", f"{latest_activity['active_users']:,.0f}")
+    k2.metric("Total Sessions", f"{latest_activity['sessions']:,.0f}")
+    k3.metric("Matches Formed", f"{latest_activity['matches']:,.0f}")
+    k4.metric("Messages Sent", f"{latest_activity['messages']:,.0f}")
 
     st.divider()
 
@@ -388,9 +411,13 @@ elif current_page == "Retention & Churn":
     st.write("")
 
     k1, k2, k3 = st.columns(3)
-    k1.metric("7-Day Retention", f"{latest['retention_7_day_pct']:.1f}%")
-    k2.metric("30-Day Retention", f"{latest['retention_30_day_pct']:.1f}%")
-    k3.metric("Monthly Churn Rate", f"{latest['churn_rate_pct']:.1f}%", delta_color="inverse")
+    k1.metric("7-Day Retention", f"{latest_cohort['retention_7_day_pct']:.1f}%")
+    k2.metric("30-Day Retention", f"{latest_cohort['retention_30_day_pct']:.1f}%")
+    k3.metric(
+        "30-Day Cohort Churn",
+        f"{latest_cohort['churn_rate_pct']:.1f}%",
+        delta_color="inverse",
+    )
 
     st.divider()
 
@@ -400,7 +427,7 @@ elif current_page == "Retention & Churn":
         st.line_chart(df[["month", "retention_7_day_pct", "retention_30_day_pct"]].set_index("month"), color=["#556B2F", "#D4A373"])
 
     with c2:
-        st.markdown("##### Platform Churn Rate (%)")
+        st.markdown("##### 30-Day Churn by Signup Cohort (%)")
         st.line_chart(df[["month", "churn_rate_pct"]].set_index("month"), color="#DC2626")
 
     st.markdown("##### Touchpoint Frequency per Active User")

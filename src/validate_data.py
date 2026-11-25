@@ -1,6 +1,9 @@
 import pandas as pd
 
 
+failures = []
+
+
 # ==========================================
 # LOAD DATA
 # ==========================================
@@ -30,6 +33,7 @@ def check(condition, passed_message, failed_message):
         print(f"✓ PASS: {passed_message}")
     else:
         print(f"✗ FAIL: {failed_message}")
+        failures.append(failed_message)
 
 
 # ==========================================
@@ -315,3 +319,8 @@ print(f"Messages:          {len(messages):,}")
 print(f"Profile Events:    {len(profile_events):,}")
 
 print("\nValidation complete.")
+
+if failures:
+    raise SystemExit(
+        f"Data validation failed: {len(failures)} check(s) did not pass."
+    )

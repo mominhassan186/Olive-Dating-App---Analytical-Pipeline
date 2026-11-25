@@ -199,26 +199,39 @@ executive = executive.merge(
     how="left"
 )
 
+count_columns = [
+    "new_users",
+    "active_users",
+    "sessions",
+    "matches",
+    "messages",
+]
+executive[count_columns] = executive[count_columns].fillna(0)
+
 
 # ==========================================
 # DERIVED ENGAGEMENT METRICS
 # ==========================================
 
+active_users = executive["active_users"].where(
+    executive["active_users"] != 0
+)
+
 executive["sessions_per_active_user"] = (
     executive["sessions"]
-    / executive["active_users"]
+    / active_users
 )
 
 
 executive["matches_per_active_user"] = (
     executive["matches"]
-    / executive["active_users"]
+    / active_users
 )
 
 
 executive["messages_per_active_user"] = (
     executive["messages"]
-    / executive["active_users"]
+    / active_users
 )
 
 
